@@ -13,15 +13,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
 model Carrera {
   id       Int       @id @default(autoincrement())
   nombre   String    @unique
   materias Materia[]
+  usuarios Usuario[]
 }
 
 model Materia {
-  id        Int     @id @default(autoincrement())
-  nombre    String  @unique
+  id        Int               @id @default(autoincrement())
+  nombre    String            @unique
   carreraId Int
-  carrera   Carrera @relation(fields: [carreraId], references: [id], onDelete: Cascade)
+  carrera   Carrera           @relation(fields: [carreraId], references: [id], onDelete: Cascade)
+  usuarios  MateriaUsuario[]
 }
+
+model Usuario {
+  id        Int               @id @default(autoincrement())
+  nombre    String?
+  apellido  String?
+  correo    String            @unique
+  password  String
+  createAt  DateTime          @default(now())
+  updateAt  DateTime          @updatedAt
+
+  carreraId Int?
+  carrera   Carrera?          @relation(fields: [carreraId], references: [id])
+
+  materias  MateriaUsuario[]
+}
+
+model MateriaUsuario {
+  materiaId Int
+  usuarioId Int
+  nota      Int
+  estado    String   @default("No disponible")
+
+  materia   Materia  @relation(fields: [materiaId], references: [id])
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@id([materiaId, usuarioId])
+}
+
+
+
+
+
+
+

@@ -6,12 +6,12 @@ const carreraRouter = Router();
 carreraRouter.get("/", async (_req, res) => {
   try {
     const carreras = await prisma.carrera.findMany();
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: carreras,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: "InternalServerError",
       msg: "Ha ocurrido un error inesperado, intentelo mas tarde",
@@ -29,19 +29,19 @@ carreraRouter.get("/:id", async (req, res) => {
     });
 
     if (!carrera) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         error: "NotFoundError",
         msg: "Carrera no encontrada",
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: carrera,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: "InternalServerError",
       msg: "Ha ocurrido un error inesperado, intentelo mas tarde",
@@ -59,14 +59,14 @@ carreraRouter.post("/", async (req, res) => {
       },
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       code: 201,
       msg: "Carrera creada exitosamente",
       data: carrera,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: "InternalServerError",
       msg: "Ha ocurrido un error inesperado, intentelo mas tarde",
@@ -87,7 +87,7 @@ carreraRouter.post(
       });
 
       if (!mat) {
-        res.status(404).json({
+        return res.status(404).json({
           success: false,
           error: "NotFoundError",
           msg: "Materia no encontrada",
@@ -101,7 +101,7 @@ carreraRouter.post(
       });
 
       if (!carrera) {
-        res.status(404).json({
+        return res.status(404).json({
           success: false,
           error: "NotFoundError",
           msg: "Carrera no encontrada",
@@ -121,13 +121,13 @@ carreraRouter.post(
         },
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         msg: "Materia agregada con exito",
         data: materiaActualizada,
       });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: "InternalServerError",
         msg: "Ha ocurrido un error inesperado, intentelo mas tarde",
@@ -135,5 +135,58 @@ carreraRouter.post(
     }
   }
 );
+
+
+carreraRouter.post("/asignar_carrera/:usuarioId/:carreraId", async (req, res) => {
+  try {
+    const { usuarioId, carreraId } = req.params;
+
+    const usuario = await prisma.usuario.findUnique({
+      where: {
+        id: +usuarioId
+      }
+    });
+
+    if(!usuario) return res.status(404).json({
+      success: false,
+      error: "NotFoundError",
+      msg: "Usuario no encontrado"
+    });
+
+    const carrera = await prisma.carrera.findUnique({
+      where: {
+        id: +carreraId
+      }
+    });
+
+    if(!carrera) return res.status(404).json({
+      success: false,
+      error: "NotFoundError",
+      msg: "Carrera no encontrada"
+    });
+
+    const usuarioActualizado = await prisma.usuario.update({
+      where: {
+        id: +carreraId
+      },
+      data: {
+        carreraId: +carreraId
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: usuarioActualizado
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "InternalServerError",
+      msg: "Ha ocurrido un error inesperado, intentelo mas tarde",
+    });
+  }
+})
+
 
 export default carreraRouter;
